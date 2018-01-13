@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<style>
+
+.node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+.link { 
+  stroke: #999;
+  stroke-opacity: .;
+}
+
+</style>
+<style>
+			canvas{
+			}
+</style>
+<body>
+<script src="./d3.v3.min.js"></script>
+<script src="./Chart.js"></script>
+
+<style type="text/css">
+body{ font-family:Arial, Helvetica, sans-serif; font-weight:bold;}
+.layout{ width:1501px; margin:0 auto;}
+#a{ width:1200px; height: 1080px; float:left;}
+#b{ width:300px; height:1080px; float:right}
+</style>
+<div class="layout">
+      <div id="a">
+      <h> Force-Directed Graph</h>
+      </div>
+      
+      <div id="b">
+      	<h>About</h>
+	<p>This Force-Directed Graph describes the relationship of my social network, 
+	I exported all my 148 friends from facebook. After processing of my raw material,
+	the social network graph is showed on the left side. And below is the distribution of my all friends.
+	</p>
+   <div id="bar">
+	  <canvas id="canvas" height="250" width="300"></canvas>
+      <table width="100%" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+  <td width="42"></td>
+    <td width="80" align="center">usa</td>
+    <td width="80" align="center">uk</td>
+    <td width="80" align="center">home</td>
+  </tr>
+</table>
+
+        
+   </div>
+   <div id="pie">
+	<canvas id="canvas2" height="250" width="300"></canvas>
+      
+    <table width="60%" align="center" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td width="20" bgcolor="#e583d6">&nbsp;</td>
+    <td>&nbsp;female</td>
+    <td width="20" bgcolor="#83aae5">&nbsp;</td>
+    <td>&nbsp;male</td>
+  </tr>
+</table>
+
+   </div>
+   
+   
+        
+      </div>
+</div>
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+
+var width = 1200 ,
+    height = 1000;
+var fnum=0
+var mnum=0
+
+var usa=[0]
+var uk=[0]
+var home=[0]
+
+	
+var color = d3.scale.category10();
+
+var force = d3.layout.force()
+    .charge(-300)					//the negative charge between nodes
+    .linkDistance(160)  			//the length of the edges between connected nodes
+    .size([width, height]);
+
+var svg = d3.select("#a").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+d3.json("test.json", function(error, graph) {
+   var nameIndex = {};
+  
+        graph.nodes.forEach(function (node, index) {
+            nameIndex[node.name] = index
+			
+			if(node.sex=="female"){
+				fnum=fnum+1
+				}else{
+				mnum=mnum+1
+			}
+			
+			  switch(node.group)
+			  {
+			  case "1":
+			  usa[0]=usa[0]+1;
+			  break;
+			  case "2":
+			  uk[0]=uk[0]+1;
+			  case "3":
+			  home[0]=home[0]+1;
+			  break;
+			  default:
+			
+			  }
+			  
+			
+			
+			
+        })
+		
+
+         graph.links.forEach(function (link) {
+            link.source = nameIndex[link.source]	
+            link.target = nameIndex[link.target]
+          })
+  force
+
+      .nodes(graph.nodes)
+      .links(graph.links)
+     
+      .start();
+
+  var link = svg.selectAll("line")
+      .data(graph.links)
+
+    .enter().append("line")
+      .attr("class", "link")
+      .style("stroke-width", function(d) { return Math.sqrt(d.value/30); });
+
+  var node = svg.selectAll("circle")
+      .data(graph.nodes)
+    .enter().append("circle")
+      .attr("class", "node")
+      .attr("r", 10)
+      .style("fill", function(d) { return color(d.group); })
+      .call(force.drag); 				//enable to move nodes around
+
+
+  node.append("title")			//show name when monve
+      .attr("dx", 12)
+      .attr("dy", ".35em")
+      .text(function(d) { return d.name+":"+d.sex; });
+
+  force.on("tick", function() {
+    link.attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
+
+    node.attr("cx", function(d) { return d.x; })
+        .attr("cy", function(d) { return d.y; });
+  });
+  
+  
+  
+  //painting
+		var barChartData = {
+			labels : ["Distribution"],
+			datasets : [
+				{
+					fillColor : "rgba(31,119,180,1)",
+					strokeColor : "rgba(31,119,180,1)",
+					data : usa
+				},
+				{
+					fillColor : "rgba(251,149,18,1)",
+					strokeColor : "rgba(251,149,18,1)",
+					data : home
+				},
+				{
+					fillColor : "rgba(40,160,44,1)",
+					strokeColor : "rgba(40,160,44,1)",
+					data : uk
+				},
+
+			]
+			
+		}
+
+	var myLine = new Chart(document.getElementById("canvas").getContext("2d")).Bar(barChartData);
+	
+	
+
+	var pieData2 = [
+				{
+					value: fnum,
+					color:"#83aae5"
+				},
+				{
+					value : mnum,
+					color : "#e583d6"
+				}
+				
+			
+			];
+			
+			
+	var myLine2 = new Chart(document.getElementById("canvas2").getContext("2d")).Pie(pieData2);
+	/*end of painting*/
+
+  
+});
+
+
+
+
+
+
+
+
+
+
+</script>
+</html>
